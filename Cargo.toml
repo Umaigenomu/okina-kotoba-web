@@ -1,0 +1,12 @@
+[package]
+name = "okina-bot_kotoba_web"
+version = "0.1.0"
+authors = ["uemi (Duram) <handurimu@gmail.com>"]
+edition = "2018"
+
+
+[dependencies]
+regex = "1"
+serenity = "0.10"
+tokio = { version = "1.5.0", features = ["full"] }
+dotenv = "0.15.0"
