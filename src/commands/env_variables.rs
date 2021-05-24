@@ -4,19 +4,19 @@ use std::collections::HashMap;
 
 pub const KOTOBA_API_URL: &'static str = "https://kotobaweb.com/api/game_reports/";
 
-pub const SERVER_ID: u64 = 336676820176863233; // OPTIONAL
+pub const SERVER_ID: u64 = 336676820176863233;
 
 pub const KOTOBA_BOT_ID: u64 = 251239170058616833;
 
 pub const ANNOUNCEMENT_CHANNEL_ID: u64 = 838580882620809248;
 
 pub const RANK_ROLES: [u64; 6] = [
+    0,                  // No role
     845821942821158952, // 新米少佐
     845822538978295819, // 少佐
     845822662014140446, // 中佐
     845822770499289099, // 大佐
     845822934730932254, // 大将
-    0,                  // DONE
 ];
 const RANK_NAMES: [&str; 5] = ["新米少佐", "少佐", "中佐", "大佐", "大将"];
 
@@ -24,7 +24,7 @@ const RANK_NAMES: [&str; 5] = ["新米少佐", "少佐", "中佐", "大佐", "�
 // for multiple deck quizzes, the unique ids were merged with '+'
 //
 // VALUES STORED ARE:
-//  score_limit, answer_time_limit_in_ms, fontsize, font, next_rankrole_id, allowed_failed_question_count
+//  score_limit, answer_time_limit_in_ms, fontsize, font, rankrole_id, allowed_failed_question_count
 pub type QuizSettings = (u32, u32, u32, &'static str, u64, u8);
 pub fn get_rank_quizzes() -> HashMap<String, QuizSettings> {
     let mut rank_quizzes = HashMap::new();
@@ -33,39 +33,19 @@ pub fn get_rank_quizzes() -> HashMap<String, QuizSettings> {
         (14, 10001, 80, "any", RANK_ROLES[1], 0),
     );
     rank_quizzes.insert(
-        format!("{}", RANK_ROLES[0]),
-        (14, 10001, 80, "any", RANK_ROLES[1], 0),
-    );
-    rank_quizzes.insert(
         "JLPT N3".to_owned(),
         (18, 10001, 60, "any", RANK_ROLES[2], 0),
     );
     rank_quizzes.insert(
-        format!("{}", RANK_ROLES[1]),
-        (18, 10001, 60, "any", RANK_ROLES[2], 0),
-    );
-    rank_quizzes.insert(
         "JLPT N2+gn2.json".to_owned(),
-        (20, 16001, 40, "AC Gyousho", RANK_ROLES[3], 1),
-    );
-    rank_quizzes.insert(
-        format!("{}", RANK_ROLES[2]),
-        (20, 16001, 40, "AC Gyousho", RANK_ROLES[3], 1),
+        (20, 16001, 40, "AC Gyousho", RANK_ROLES[3], 0),
     );
     rank_quizzes.insert(
         "JLPT N1+gn1.json".to_owned(),
         (24, 16001, 40, "AC Gyousho", RANK_ROLES[4], 1),
     );
     rank_quizzes.insert(
-        format!("{}", RANK_ROLES[3]),
-        (24, 16001, 40, "AC Gyousho", RANK_ROLES[4], 1),
-    );
-    rank_quizzes.insert(
         "kanken_2k+kanken_j1k+57cbb7f8-72b0-4361-a0a8-9020441e1d0c".to_owned(),
-        (30, 12001, 40, "AC Gyousho", RANK_ROLES[5], 0),
-    );
-    rank_quizzes.insert(
-        format!("{}", RANK_ROLES[4]),
         (30, 12001, 40, "AC Gyousho", RANK_ROLES[5], 0),
     );
 
