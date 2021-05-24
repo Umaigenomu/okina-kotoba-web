@@ -1,8 +1,18 @@
 extern crate dotenv;
 mod commands;
-use commands::levelup;
 
-use std::{collections::HashSet, env};
+use okina_bot_kotoba_web::utils::Pipe;
+use commands::{
+    levelup::*,
+};
+
+use commands::env_variables::{
+    get_rank_commands,
+    get_rank_quizzes,
+    QuizSettings
+};
+
+use std::{collections::{HashMap, HashSet}, env, sync::Arc};
 use serenity::{
     async_trait,
     framework::{
@@ -18,7 +28,19 @@ use serenity::{
 };
 use dotenv::dotenv;
 
+struct RankCommands;
+impl TypeMapKey for RankCommands {
+    type Value = Arc<HashMap<u64, String>>;
+}
+
+struct RankQuizzes;
+impl TypeMapKey for RankQuizzes {
+    type Value = Arc<HashMap<String, QuizSettings>>;
+}
+
+
 #[group]
+#[commands(levelup)]
 struct General;
 
 struct Handler;
@@ -27,11 +49,13 @@ struct Handler;
 impl EventHandler for Handler {
     
     async fn message(&self, ctx: Context, msg: Message) {
-        if msg.content == "!ping" {
-            if let Err(why) = msg.channel_id.say(&ctx.http, "Pong!").await {
+        if msg.content == "%ping" {
+            if let Err(why) = msg.channel_id.say(&ctx.http, "Pong%").await {
                 println!("Error sending message: {:?}", why);
             }
         }
+
+        let _ = Pipe::new((ctx, msg)) >> on_kotoba_msg;
     }
     async fn ready(&self, _: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
@@ -69,12 +93,22 @@ async fn main() {
             .with_whitespace(true)
             .on_mention(Some(bot_id))
             .prefix("%"))
-        .help(&MY_HELP);
+        .help(&MY_HELP)
+        .group(&GENERAL_GROUP);
 
     let mut client = Client::builder(&token)
+        .framework(framework)
         .event_handler(Handler)
         .await
         .expect("Err creating client");
+
+    
+    {
+        let mut data = client.data.write().await;
+        data.insert::<RankCommands>(Arc::new(get_rank_commands()));
+        data.insert::<RankQuizzes>(Arc::new(get_rank_quizzes()));
+    }
+
 
     // Shards will automatically attempt to reconnect, and will perform
     // exponential backoff until it reconnects.
