@@ -2,7 +2,9 @@ use std::{collections::HashMap, sync::Arc};
 
 use crate::RankCommands;
 use crate::{
-    commands::env_variables::{ANNOUNCEMENT_CHANNEL_ID, KOTOBA_API_URL, KOTOBA_BOT_ID, RANK_ROLES},
+    commands::env_variables::{
+        ANNOUNCEMENT_CHANNEL_ID, KOTOBA_API_URL, KOTOBA_BOT_ID, RANK_ROLES, SERVER_ID,
+    },
     RankQuizzes,
 };
 
@@ -15,8 +17,8 @@ use serenity::prelude::*;
 use super::env_variables::QuizSettings;
 
 fn get_current_next_rank(role_ids: &[u64]) -> (u64, u64) {
-    let mut next_rank = RANK_ROLES[0];
     let mut current_rank = RANK_ROLES[0];
+    let mut next_rank = RANK_ROLES[1];
 
     RANK_ROLES.iter().enumerate().for_each(|(i, rank_id)| {
         if role_ids.contains(rank_id) {
@@ -33,12 +35,12 @@ fn get_current_next_rank(role_ids: &[u64]) -> (u64, u64) {
     (current_rank, next_rank)
 }
 
-fn get_next_command(next_rank: &u64, rank_commands: &Arc<HashMap<u64, String>>) -> String {
+fn get_next_command(current_rank: &u64, rank_commands: &Arc<HashMap<u64, String>>) -> String {
     let command_regex = Regex::new(r"`(.*)`").unwrap();
     command_regex
         .captures(
             rank_commands
-                .get(&next_rank)
+                .get(&current_rank)
                 .expect("failed to retrieve command for rank"),
         )
         .unwrap()
@@ -49,22 +51,21 @@ fn get_next_command(next_rank: &u64, rank_commands: &Arc<HashMap<u64, String>>) 
 
 #[command]
 pub async fn levelup(ctx: &Context, msg: &Message, mut _args: Args) -> CommandResult {
-    let mut next_rank = RANK_ROLES[0];
+    let mut current_rank = RANK_ROLES[0];
 
-    // let roleids: Vec<u64> = msg                      : &Message
-    //     .guild(&ctx.cache).await.unwrap()            : Guild
+    // let roleids: Vec<u64> = ....await.unwrap()       : Guild
     //     .member(&ctx, msg.author.id).await.unwrap()  : Member
     //     .roles(&ctx.cache).await.unwrap()            : Vec<Role>
     //     .iter().map(|role| role.id.0).collect();     : Vec<u64>
 
     // This is equivalent to the above ^
-    if let Some(guild) = msg.guild(&ctx.cache).await {
+    if let Ok(guild) = Guild::get(&ctx.http, SERVER_ID).await {
         if let Ok(user) = guild.member(&ctx, msg.author.id).await {
             if let Some(roles) = user.roles(&ctx.cache).await {
                 let role_ids: Vec<u64> = roles.iter().map(|role| role.id.0).collect();
 
-                let (_, actual_next_rank) = get_current_next_rank(&role_ids);
-                next_rank = actual_next_rank;
+                let (actual_cur_rank, _) = get_current_next_rank(&role_ids);
+                current_rank = actual_cur_rank;
             }
         }
     }
@@ -77,7 +78,7 @@ pub async fn levelup(ctx: &Context, msg: &Message, mut _args: Args) -> CommandRe
             .clone()
     };
 
-    let next_command = get_next_command(&next_rank, &rank_commands);
+    let next_command = get_next_command(&current_rank, &rank_commands);
 
     let msg_content = format!(
         "O próximo comando para subir de nível é:\n`{}`",
@@ -166,7 +167,7 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
         return (ctx, msg);
     }
 
-    let game_report_regex = Regex::new(r"`game_reports/([^)]*)\)`").unwrap();
+    let game_report_regex = Regex::new(r"game_reports/([^)]*)\)").unwrap();
 
     let useful_embed_fields = msg
         .embeds
@@ -215,7 +216,11 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
             .iter()
             .map(|deck| deck["uniqueId"].as_str().unwrap())
             .fold("".to_owned(), |acc, next_deck| {
-                format!("{}+{}", &acc, next_deck)
+                if acc.len() > 0 {
+                    format!("{}+{}", &acc, next_deck)
+                } else {
+                    next_deck.to_owned()
+                }
             });
 
         let settings = {
@@ -261,8 +266,7 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
                 .unwrap()
                 .parse::<u64>()
                 .unwrap();
-            let mut member = msg
-                .guild(&ctx.cache)
+            let mut member = Guild::get(&ctx.http, SERVER_ID)
                 .await
                 .unwrap()
                 .member(&ctx, participant_id)
@@ -277,23 +281,27 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
                 .collect();
             let (current_rank, next_rank) = get_current_next_rank(&role_ids);
 
-            if next_calculated_rank == next_rank && current_rank != next_rank {
+            if next_rank == next_calculated_rank && current_rank != next_rank {
                 let quiz_name = kotoba_report["decks"]
                     .as_array()
                     .unwrap()
                     .iter()
                     .map(|deck| deck["name"].as_str().unwrap())
                     .fold("".to_owned(), |acc, next_deck| {
-                        format!("{}, {}", &acc, next_deck)
+                        if acc.len() > 0 {
+                            format!("{}, {}", &acc, next_deck)
+                        } else {
+                            next_deck.to_owned()
+                        }
                     });
 
                 let _ = member.remove_role(&ctx.http, current_rank).await;
                 let _ = member.add_role(&ctx.http, next_rank).await;
 
                 let _ = ChannelId(ANNOUNCEMENT_CHANNEL_ID).say(&ctx.http, format!(
-                    "O membro <@!{}> passou do(s) quiz(es) {}!\nO próximo nível pode ser verificado através do comando '%levelup'.", 
+                    "O membro <@!{}> passou do(s) quiz(es) {}!\nO próximo nível pode ser verificado através do comando `%levelup`.", 
                     participant_id, &quiz_name
-                ));
+                )).await;
             }
         }
     }
