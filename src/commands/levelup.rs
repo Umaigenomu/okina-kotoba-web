@@ -1,11 +1,11 @@
 use std::{collections::HashMap, sync::Arc};
 
-use crate::RankCommands;
 use crate::{
     commands::env_variables::{
-        ANNOUNCEMENT_CHANNEL_ID, KOTOBA_API_URL, KOTOBA_BOT_ID, RANK_ROLES, SERVER_ID,
+        ANNOUNCEMENT_CHANNEL_ID, KOTOBA_API_URL, KOTOBA_BOT_ID, RANK_ROLES, SERVER_ID, QUIZ_IDS
     },
     RankQuizzes,
+    RankCommands
 };
 
 use regex::Regex;
@@ -50,6 +50,7 @@ fn get_next_command(current_rank: &u64, rank_commands: &Arc<HashMap<u64, String>
 }
 
 #[command]
+#[description = "Envia uma mensagem no privado com o comando da kotoba-web do próximo quiz"]
 pub async fn levelup(ctx: &Context, msg: &Message, mut _args: Args) -> CommandResult {
     let mut current_rank = RANK_ROLES[0];
 
@@ -256,6 +257,9 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
             || wrong_font_settings
             || failed_too_many
         {
+            if &quiz_key == QUIZ_IDS.last().unwrap() {
+                let _ = msg.channel_id.say(&ctx.http, "馬鹿だねぇ。断言しよう！　今のお前が私に勝つことは不可能だ。\nお前の背中に四季の扉がある限り、勝負など茶番でしか無い。").await;
+            }
             continue;
         } else {
             // according to quiz results
@@ -299,7 +303,7 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
                 let _ = member.add_role(&ctx.http, next_rank).await;
 
                 let _ = ChannelId(ANNOUNCEMENT_CHANNEL_ID).say(&ctx.http, format!(
-                    "O membro <@!{}> passou do(s) quiz(es) {}!\nO próximo nível pode ser verificado através do comando `%levelup`.", 
+                    "<@!{}> passou no(s) quiz(es) de {}!\nO próximo nível pode ser verificado através do comando `%levelup`.", 
                     participant_id, &quiz_name
                 )).await;
             }

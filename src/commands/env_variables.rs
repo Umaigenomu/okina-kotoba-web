@@ -20,6 +20,14 @@ pub const RANK_ROLES: [u64; 6] = [
 ];
 const RANK_NAMES: [&str; 5] = ["新米少佐", "少佐", "中佐", "大佐", "大将"];
 
+pub const QUIZ_IDS: [&str; 5] = [
+    "JLPT N4",
+    "JLPT N3",
+    "JLPT N2+gn2.json",
+    "JLPT N1+gn1.json",
+    "kanken_2k+kanken_j1k+57cbb7f8-72b0-4361-a0a8-9020441e1d0c"
+];
+
 // By accessing kotoba-web's api, you are able to see each of the decks' unique ids' for a quiz report
 // for multiple deck quizzes, the unique ids were merged with '+'
 //
@@ -29,23 +37,23 @@ pub type QuizSettings = (u32, u32, u32, &'static str, u64, u8);
 pub fn get_rank_quizzes() -> HashMap<String, QuizSettings> {
     let mut rank_quizzes = HashMap::new();
     rank_quizzes.insert(
-        "JLPT N4".to_owned(),
+        QUIZ_IDS[0].to_owned(),
         (14, 10001, 80, "any", RANK_ROLES[1], 0),
     );
     rank_quizzes.insert(
-        "JLPT N3".to_owned(),
+        QUIZ_IDS[1].to_owned(),
         (18, 10001, 60, "any", RANK_ROLES[2], 0),
     );
     rank_quizzes.insert(
-        "JLPT N2+gn2.json".to_owned(),
+        QUIZ_IDS[2].to_owned(),
         (20, 16001, 40, "AC Gyousho", RANK_ROLES[3], 0),
     );
     rank_quizzes.insert(
-        "JLPT N1+gn1.json".to_owned(),
+        QUIZ_IDS[3].to_owned(),
         (24, 16001, 40, "AC Gyousho", RANK_ROLES[4], 1),
     );
     rank_quizzes.insert(
-        "kanken_2k+kanken_j1k+57cbb7f8-72b0-4361-a0a8-9020441e1d0c".to_owned(),
+        QUIZ_IDS[4].to_owned(),
         (30, 12001, 40, "AC Gyousho", RANK_ROLES[5], 0),
     );
 

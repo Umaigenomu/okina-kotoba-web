@@ -124,6 +124,10 @@ async fn main() {
 }
 
 #[help]
+#[individual_command_tip =
+"おお、よくぞ来られた。お前が艦長の言っていた新米だな~\n\n\
+Para obter mais detalhes sobre um commando, passe o mesmo como um argumento."]
+
 async fn my_help(
     context: &Context,
     msg: &Message,
