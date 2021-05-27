@@ -25,6 +25,7 @@ use serenity::{
         prelude::{Activity, OnlineStatus},
     },
     prelude::*,
+    utils::MessageBuilder,
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -124,18 +125,32 @@ async fn main() {
 }
 
 #[help]
-#[individual_command_tip =
-"おお、よくぞ来られた。お前が艦長の言っていた新米だな~\n\n\
-Para obter mais detalhes sobre um commando, passe o mesmo como um argumento."]
-
+// #[individual_command_tip =
+// "おお、よくぞ来られた。お前が艦長の言っていた新米だな~\n\n\
+// Para obter mais detalhes sobre um commando, passe o mesmo como um argumento."]
 async fn my_help(
     context: &Context,
     msg: &Message,
-    args: Args,
-    help_options: &'static HelpOptions,
-    groups: &[&'static CommandGroup],
-    owners: HashSet<UserId>,
+    _args: Args,
+    _help_options: &'static HelpOptions,
+    _groups: &[&'static CommandGroup],
+    _owners: HashSet<UserId>,
 ) -> CommandResult {
-    let _ = help_commands::with_embeds(context, msg, args, help_options, groups, owners).await;
+    // let _ = help_commands::with_embeds(context, msg, args, help_options, groups, owners).await;
+    let _ = msg.channel_id.send_message(&context.http, |m| {
+        m.content("おお、よくぞ来られた。お前が二童子の言っていた新米だな~");
+        m.embed(|e| {
+            e.title("Resumo dos comandos");
+            e.description("Lembretes:\n - Cada quiz deve ser feito solo\n - - Os quizes devem ser feitos na ordem correta");
+            e.field("`%levelup`", "Envia uma DM com o comando da kotoba-web do próximo quiz a ser feito pelo usuário", false);
+            e.field("`%quizzes`", "Envia uma DM com todos os quizzes de cada nível", false);
+            e.field("`%tabela`", "Mostra a distribuição dos cargos de nível", false);
+            e.field("`%help`", "Mostra essa mensagem", false);
+            e.field("`隠岐奈画像出典`", "[幻想郷幽玄庵 DL -> 天空璋](https://gensoukyou.1000.tv/dl.html)", false);
+            e.field("　​", "[repo](https://gitlab.com/uemi/okina-kotoba/-/tree/development)", false);
+            e
+        });
+        m
+    }).await;
     Ok(())
 }
