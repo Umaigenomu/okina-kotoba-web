@@ -211,9 +211,9 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
             .map(|deck| deck["uniqueId"].as_str().unwrap())
             .fold("".to_owned(), |acc, next_deck| {
                 if acc.is_empty() {
-                    format!("{}+{}", &acc, next_deck)
-                } else {
                     next_deck.to_owned()
+                } else {
+                    format!("{}+{}", &acc, next_deck)
                 }
             });
 
@@ -280,9 +280,9 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
                     .map(|deck| deck["name"].as_str().unwrap())
                     .fold("".to_owned(), |acc, next_deck| {
                         if acc.is_empty() {
-                            format!("{}, {}", &acc, next_deck)
-                        } else {
                             next_deck.to_owned()
+                        } else {
+                            format!("{}, {}", &acc, next_deck)
                         }
                     });
 
