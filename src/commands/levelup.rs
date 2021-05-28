@@ -36,21 +36,21 @@ fn get_current_next_rank(role_ids: &[u64]) -> (u64, u64) {
 }
 
 fn get_next_command(current_rank: &u64, rank_commands: &Arc<HashMap<u64, String>>) -> String {
-    let command_regex = Regex::new(r"`(.*)`").unwrap();
-    command_regex
-        .captures(
-            rank_commands
+    let text = rank_commands
                 .get(&current_rank)
-                .expect("failed to retrieve command for rank"),
-        )
-        .unwrap()
-        .get(1)
-        .map_or("", |m| m.as_str())
-        .to_owned()
+                .expect("failed to retrieve command for rank");
+    let command_regex = Regex::new(r"`(.*)`").unwrap();
+    let capture = command_regex.captures(text);
+    if let Some(cap) = capture {
+        cap.get(1)
+            .map_or("", |m| m.as_str())
+            .to_owned()
+    } else {
+        text.to_owned()
+    }
 }
 
 #[command]
-#[description = "Envia uma mensagem no privado com o comando da kotoba-web do próximo quiz"]
 pub async fn levelup(ctx: &Context, msg: &Message, mut _args: Args) -> CommandResult {
     let mut current_rank = RANK_ROLES[0];
 
@@ -61,13 +61,11 @@ pub async fn levelup(ctx: &Context, msg: &Message, mut _args: Args) -> CommandRe
 
     // This is equivalent to the above ^
     if let Ok(guild) = Guild::get(&ctx.http, SERVER_ID).await {
-        if let Ok(user) = guild.member(&ctx, msg.author.id).await {
-            if let Some(roles) = user.roles(&ctx.cache).await {
-                let role_ids: Vec<u64> = roles.iter().map(|role| role.id.0).collect();
+        if let Ok(user) = guild.member(&ctx.http, msg.author.id).await {
+            let role_ids: Vec<u64> = user.roles.iter().map(|roleid| roleid.0).collect();
 
-                let (actual_cur_rank, _) = get_current_next_rank(&role_ids);
-                current_rank = actual_cur_rank;
-            }
+            let (actual_cur_rank, _) = get_current_next_rank(&role_ids);
+            current_rank = actual_cur_rank;
         }
     }
 
@@ -93,7 +91,7 @@ pub async fn levelup(ctx: &Context, msg: &Message, mut _args: Args) -> CommandRe
     match dm {
         Ok(_) => {}
         Err(why) => {
-            println!("Err sending help: {:?}", why);
+            println!("Err sending DM: {:?}", why);
             let _ = msg.reply(&ctx, &msg_content).await;
         }
     };
@@ -273,15 +271,13 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
             let mut member = Guild::get(&ctx.http, SERVER_ID)
                 .await
                 .unwrap()
-                .member(&ctx, participant_id)
+                .member(&ctx.http, participant_id)
                 .await
                 .unwrap();
             let role_ids: Vec<u64> = member
-                .roles(&ctx.cache)
-                .await
-                .unwrap()
+                .roles
                 .iter()
-                .map(|role| role.id.0)
+                .map(|roleid| roleid.0)
                 .collect();
             let (current_rank, next_rank) = get_current_next_rank(&role_ids);
 
@@ -299,13 +295,30 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
                         }
                     });
 
+                
                 let _ = member.remove_role(&ctx.http, current_rank).await;
-                let _ = member.add_role(&ctx.http, next_rank).await;
+                let adr = member.add_role(&ctx.http, next_rank).await;
+                if let Err(_) = adr {
+                    let _ = msg.channel_id.say(
+                        &ctx.http,
+                         "Não possuo permissão para te dar o cargo do próximo nível. Entre em contato com um moderador."
+                    ).await;
+                }
 
-                let _ = ChannelId(ANNOUNCEMENT_CHANNEL_ID).say(&ctx.http, format!(
-                    "<@!{}> passou no(s) quiz(es) de {}!\nO próximo nível pode ser verificado através do comando `%levelup`.", 
-                    participant_id, &quiz_name
-                )).await;
+                let ann_channel = ChannelId(ANNOUNCEMENT_CHANNEL_ID);
+
+                if next_rank == *RANK_ROLES.last().unwrap() {
+                    let _ = ann_channel.say(&ctx.http, format!(
+                        "<@!{}> passou no(s) quiz(es): {}!\nやられたー！　さすが伯刺西爾の大将ね。この私の攻撃を避けきるなんて。\n二童子の後継探しなんていう嘘の口実で派手に動いた甲斐があった。\n私達が創った幻想郷は無事に機能しているようだな。", 
+                        participant_id, &quiz_name
+                    )).await;
+                } else {
+                    let _ = ann_channel.say(&ctx.http, format!(
+                        "<@!{}> passou no(s) quiz(es): {}! Parabéns!\nO próximo nível pode ser verificado através do comando `%levelup`.", 
+                        participant_id, &quiz_name
+                    )).await;
+                }
+
             }
         }
     }

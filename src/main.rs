@@ -3,10 +3,13 @@ mod commands;
 
 // use okina_bot_kotoba_web::utils::Pipe;
 use commands::levelup::*;
+use commands::metadata::*;
 
 use commands::env_variables::{get_rank_commands, get_rank_quizzes, QuizSettings};
 
 use dotenv::dotenv;
+use serenity::client::bridge::gateway::GatewayIntents;
+use serenity::utils::Colour;
 use serenity::{
     async_trait,
     framework::{
@@ -44,7 +47,7 @@ impl TypeMapKey for RankQuizzes {
 }
 
 #[group]
-#[commands(levelup)]
+#[commands(levelup, niveis, tabela)]
 struct General;
 
 struct Handler;
@@ -107,6 +110,7 @@ async fn main() {
 
     let mut client = Client::builder(&token)
         .framework(framework)
+        .intents(GatewayIntents::non_privileged() | GatewayIntents::GUILD_PRESENCES)
         .event_handler(Handler)
         .await
         .expect("Err creating client");
@@ -125,9 +129,6 @@ async fn main() {
 }
 
 #[help]
-// #[individual_command_tip =
-// "おお、よくぞ来られた。お前が艦長の言っていた新米だな~\n\n\
-// Para obter mais detalhes sobre um commando, passe o mesmo como um argumento."]
 async fn my_help(
     context: &Context,
     msg: &Message,
@@ -141,9 +142,16 @@ async fn my_help(
         m.content("おお、よくぞ来られた。お前が二童子の言っていた新米だな~");
         m.embed(|e| {
             e.title("Resumo dos comandos");
-            e.description("Lembretes:\n - Cada quiz deve ser feito solo\n - - Os quizes devem ser feitos na ordem correta");
+            e.color(Colour::ORANGE);
+            e.description(
+                "Lembretes:\n".to_owned() + 
+                " - Cada quiz deve ser feito solo\n" + 
+                " - Os quizzes devem ser feitos na ordem correta\n" +
+                " - Por favor, fazer os quizzes nos canais de corretos"
+            );
             e.field("`%levelup`", "Envia uma DM com o comando da kotoba-web do próximo quiz a ser feito pelo usuário", false);
-            e.field("`%quizzes`", "Envia uma DM com todos os quizzes de cada nível", false);
+            e.field("`%niveis`", "Envia uma DM com todos os nomes e quizzes de cada nível", false);
+            // e.field("`%nivel [numero]`", "Envia o quiz cujo nível é igual a [numero]", false);
             e.field("`%tabela`", "Mostra a distribuição dos cargos de nível", false);
             e.field("`%help`", "Mostra essa mensagem", false);
             e.field("`隠岐奈画像出典`", "[幻想郷幽玄庵 DL -> 天空璋](https://gensoukyou.1000.tv/dl.html)", false);
