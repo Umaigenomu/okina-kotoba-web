@@ -23,18 +23,18 @@ pub const QUIZ_SETTINGS: [QuizSettings; 6] = [
     (12, 16001, 60, "any", RANK_ROLES[1], 0),
     (15, 12001, 60, "any", RANK_ROLES[2], 0),
     (18, 12001, 60, "any", RANK_ROLES[3], 0),
-    (21, 18001, 40, "AC Gyousho", RANK_ROLES[4], 1),
-    (25, 18001, 40, "AC Gyousho", RANK_ROLES[5], 1),
-    (30, 12001, 40, "AC Gyousho", RANK_ROLES[6], 1),
+    (22, 18001, 40, "AC Gyousho", RANK_ROLES[4], 1),
+    (26, 18001, 40, "AC Gyousho", RANK_ROLES[5], 1),
+    (30, 12001, 40, "AC Gyousho", RANK_ROLES[6], 0),
 ];
 // Kotoba-web quiz commands built upon the settings above^
 pub const QUIZ_COMMANDS: [&str; 6] = [
     "k!quiz n5 nd atl=16 12 size=60 mmq=1",
     "k!quiz n4 nd atl=12 15 size=60 mmq=1",
     "k!quiz n3 nd atl=12 18 size=60 mmq=1",
-    "k!quiz n2+gn2 nd atl=18 21 font=10 size=40 mmq=2",
-    "k!quiz n1+gn1 nd atl=18 25 font=10 size=40 mmq=2",
-    "k!quiz 2k+j1k+cope nd atl=12 30 font=10 size=40 mmq=2",
+    "k!quiz n2+gn2 nd atl=18 22 font=10 size=40 mmq=2",
+    "k!quiz n1+gn1 nd atl=18 26 font=10 size=40 mmq=2",
+    "k!quiz 2k+j1k+cope nd atl=12 30 font=10 size=40 mmq=1",
 ];
 
 // By accessing kotoba-web's api, you are able to see each of the decks' unique ids for a quiz report
