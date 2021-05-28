@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use crate::commands::env_variables::{RANK_NAMES, RANK_ROLES};
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::*;
-use serenity::{client::bridge::gateway::ChunkGuildFilter, prelude::*};
+use serenity::{prelude::*};
 
 use super::env_variables::get_command_phrases;
 
@@ -41,13 +41,18 @@ pub async fn tabela(ctx: &Context, msg: &Message, mut _args: Args) -> CommandRes
     let mut role_count = vec![0u16; rank_roles.len()];
 
     if let Some(guild) = msg.guild(&ctx.cache).await {
-        let guild_id = guild.id;
-        ctx.shard
-            .chunk_guild(guild_id, Some(10000), ChunkGuildFilter::None, None);
+        let mem_count = guild.member_count as f64;
+        let chunks = std::cmp::max((mem_count / 1000f64).ceil() as i64 - 1, 0);
         
-        if let Some(members) = ctx.cache.guild_field(guild_id, |g| g.members.to_owned()).await {
-            let members: Vec<&Member> = members.iter().map(|entry| entry.1).collect();
-            for &member in members.iter() {
+        if let Ok(mut members) = guild.members(&ctx.http, Some(1000), None).await {
+            for _ in 0..chunks {
+                if let Ok(mut members_nested) = guild.members(&ctx.http, Some(1000), members.last().unwrap().user.id).await {
+                    members.append(&mut members_nested);
+                }
+            }
+
+
+            for member in members.iter() {
                 member.roles.iter().for_each(|roleid| {
                     if rank_roles_set.contains(&roleid.0) {
                         let role_ind = rank_roles.iter().position(|&x| x == roleid.0).unwrap();

@@ -1,12 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use crate::{
-    commands::env_variables::{
-        ANNOUNCEMENT_CHANNEL_ID, KOTOBA_API_URL, KOTOBA_BOT_ID, RANK_ROLES, SERVER_ID, QUIZ_IDS
-    },
-    RankQuizzes,
-    RankCommands
-};
+use crate::{RankCommands, RankQuizzes, commands::env_variables::{ANNOUNCEMENT_CHANNEL_ID, KOTOBA_API_URL, KOTOBA_BOT_ID, QUIZ_IDS, RANK_NAMES, RANK_ROLES, SERVER_ID}};
 
 use regex::Regex;
 use serde_json::Value;
@@ -295,7 +289,6 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
                         }
                     });
 
-                
                 let _ = member.remove_role(&ctx.http, current_rank).await;
                 let adr = member.add_role(&ctx.http, next_rank).await;
                 if let Err(_) = adr {
@@ -309,13 +302,15 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
 
                 if next_rank == *RANK_ROLES.last().unwrap() {
                     let _ = ann_channel.say(&ctx.http, format!(
-                        "<@!{}> passou no(s) quiz(es): {}!\nやられたー！　さすが伯刺西爾の大将ね。この私の攻撃を避けきるなんて。\n二童子の後継探しなんていう嘘の口実で派手に動いた甲斐があった。\n私達が創った幻想郷は無事に機能しているようだな。", 
+                        "<@!{}> passou no(s) quiz(es): {}!\nやられたー！　さすが伯刺西爾の大将ね。この私の攻撃を避けきるなんて。", 
                         participant_id, &quiz_name
                     )).await;
                 } else {
+                    let next_rank_name = RANK_NAMES[RANK_ROLES[1..].iter().position(|&x| x == next_rank).unwrap()];
+
                     let _ = ann_channel.say(&ctx.http, format!(
-                        "<@!{}> passou no(s) quiz(es): {}! Parabéns!\nO próximo nível pode ser verificado através do comando `%levelup`.", 
-                        participant_id, &quiz_name
+                        "<@!{}> passou no(s) quiz(es): {}, e agora é um(a) {}! Parabéns!\nO próximo nível pode ser verificado através do comando `%levelup`.", 
+                        participant_id, &quiz_name, next_rank_name
                     )).await;
                 }
 

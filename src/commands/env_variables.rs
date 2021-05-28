@@ -35,20 +35,20 @@ pub const QUIZ_IDS: [&str; 6] = [
 // score_limit, answer_time_limit_in_ms, fontsize, font, rankrole_obtained, allowed_failed_question_count
 pub type QuizSettings = (u32, u32, u32, &'static str, u64, u8);
 pub const QUIZ_SETTINGS: [QuizSettings; 6] = [
-    (1, 16001, 60, "any", RANK_ROLES[1], 0),
-    (1, 10001, 60, "any", RANK_ROLES[2], 0),
-    (1, 10001, 60, "any", RANK_ROLES[3], 0),
-    (1, 16001, 40, "AC Gyousho", RANK_ROLES[4], 0),
-    (1, 16001, 40, "AC Gyousho", RANK_ROLES[5], 1),
-    (1, 12001, 40, "AC Gyousho", RANK_ROLES[6], 1),
+    (12, 16001, 60, "any", RANK_ROLES[1], 0),
+    (15, 12001, 60, "any", RANK_ROLES[2], 0),
+    (18, 12001, 60, "any", RANK_ROLES[3], 0),
+    (21, 18001, 40, "AC Gyousho", RANK_ROLES[4], 1),
+    (25, 18001, 40, "AC Gyousho", RANK_ROLES[5], 1),
+    (30, 12001, 40, "AC Gyousho", RANK_ROLES[6], 1),
 ];
 // Kotoba-web quiz commands built upon the settings above^
 const QUIZ_COMMANDS: [&str; 6] = [
     "k!quiz n5 nd atl=16 12 size=60 mmq=1",
-    "k!quiz n4 nd atl=10 15 size=60 mmq=1",
-    "k!quiz n3 nd atl=10 18 size=60 mmq=1",
-    "k!quiz n2+gn2 nd atl=16 20 font=10 size=40 mmq=1",
-    "k!quiz n1+gn1 nd atl=16 24 font=10 size=40 mmq=2",
+    "k!quiz n4 nd atl=12 15 size=60 mmq=1",
+    "k!quiz n3 nd atl=12 18 size=60 mmq=1",
+    "k!quiz n2+gn2 nd atl=18 21 font=10 size=40 mmq=2",
+    "k!quiz n1+gn1 nd atl=18 25 font=10 size=40 mmq=2",
     "k!quiz 2k+j1k+cope nd atl=12 30 font=10 size=40 mmq=2",
 ];
 

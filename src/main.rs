@@ -110,7 +110,7 @@ async fn main() {
 
     let mut client = Client::builder(&token)
         .framework(framework)
-        .intents(GatewayIntents::non_privileged() | GatewayIntents::GUILD_PRESENCES)
+        .intents(GatewayIntents::non_privileged() | GatewayIntents::GUILD_MEMBERS)
         .event_handler(Handler)
         .await
         .expect("Err creating client");
