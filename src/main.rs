@@ -14,8 +14,7 @@ use serenity::{
     async_trait,
     framework::{
         standard::{
-            help_commands,
-            macros::{check, command, group, help, hook},
+            macros::{group, help},
             Args, CommandGroup, CommandResult, HelpOptions,
         },
         StandardFramework,
@@ -28,7 +27,6 @@ use serenity::{
         prelude::{Activity, OnlineStatus},
     },
     prelude::*,
-    utils::MessageBuilder,
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -47,7 +45,7 @@ impl TypeMapKey for RankQuizzes {
 }
 
 #[group]
-#[commands(levelup, niveis, tabela)]
+#[commands(levelup, nivel, niveis, tabela)]
 struct General;
 
 struct Handler;
@@ -138,27 +136,54 @@ async fn my_help(
     _owners: HashSet<UserId>,
 ) -> CommandResult {
     // let _ = help_commands::with_embeds(context, msg, args, help_options, groups, owners).await;
-    let _ = msg.channel_id.send_message(&context.http, |m| {
-        m.content("おお、よくぞ来られた。お前が二童子の言っていた新米だな~");
-        m.embed(|e| {
-            e.title("Resumo dos comandos");
-            e.color(Colour::ORANGE);
-            e.description(
-                "Lembretes:\n".to_owned() + 
-                " - Cada quiz deve ser feito solo\n" + 
-                " - Os quizzes devem ser feitos na ordem correta\n" +
-                " - Por favor, fazer os quizzes nos canais de corretos"
-            );
-            e.field("`%levelup`", "Envia uma DM com o comando da kotoba-web do próximo quiz a ser feito pelo usuário", false);
-            e.field("`%niveis`", "Envia uma DM com todos os nomes e quizzes de cada nível", false);
-            // e.field("`%nivel [numero]`", "Envia o quiz cujo nível é igual a [numero]", false);
-            e.field("`%tabela`", "Mostra a distribuição dos cargos de nível", false);
-            e.field("`%help`", "Mostra essa mensagem", false);
-            e.field("`隠岐奈画像出典`", "[幻想郷幽玄庵 DL -> 天空璋](https://gensoukyou.1000.tv/dl.html)", false);
-            e.field("　​", "[repo](https://gitlab.com/uemi/okina-kotoba/-/tree/development)", false);
-            e
-        });
-        m
-    }).await;
+    let _ = msg
+        .channel_id
+        .send_message(&context.http, |m| {
+            m.content("おお、よくぞ来られた。お前が二童子の言っていた新米だな~");
+            m.embed(|e| {
+                e.title("Resumo dos comandos");
+                e.color(Colour::ORANGE);
+                e.description(
+                    "Lembretes:\n".to_owned()
+                        + " - Cada quiz deve ser feito solo\n"
+                        + " - Os quizzes devem ser feitos na ordem correta\n"
+                        + " - Por favor, fazer os quizzes nos canais corretos",
+                );
+                e.field(
+                    "`%levelup`",
+                    "Envia uma DM com o próximo quiz a ser feito pelo usuário",
+                    false,
+                );
+                e.field(
+                    "`%niveis`",
+                    "Envia uma DM com todos os nomes e quizzes de cada nível",
+                    false,
+                );
+                e.field(
+                    "`%nivel [numero]`",
+                    "Envia o quiz cujo nível é igual a [numero] (1 a 6)",
+                    false,
+                );
+                e.field(
+                    "`%tabela`",
+                    "Mostra a distribuição dos cargos de nível",
+                    false,
+                );
+                e.field("`%help`", "Mostra essa mensagem", false);
+                e.field(
+                    "`隠岐奈画像出典`",
+                    "[幻想郷幽玄庵 DL -> 天空璋](https://gensoukyou.1000.tv/dl.html)",
+                    false,
+                );
+                e.field(
+                    "　​",
+                    "[repo](https://gitlab.com/uemi/okina-kotoba/-/tree/development)",
+                    false,
+                );
+                e
+            });
+            m
+        })
+        .await;
     Ok(())
 }

@@ -1,11 +1,25 @@
 use std::collections::HashSet;
 
-use crate::commands::env_variables::{RANK_NAMES, RANK_ROLES};
+use crate::commands::env_variables::{RANK_NAMES, RANK_ROLES, QUIZ_COMMANDS};
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::*;
 use serenity::{prelude::*};
 
 use super::env_variables::get_command_phrases;
+
+#[command]
+pub async fn nivel(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let parse_level = args.rest().trim().parse::<u16>();
+    if let Ok(level) = parse_level {
+        if level > 0 && level < 7 {
+            let _ = msg.reply(&ctx, &format!("`{}`", QUIZ_COMMANDS[(level - 1) as usize])).await;
+        } else {
+            let _ = msg.reply(&ctx, "Os níveis são de 1 a 6.").await;
+        }
+    }
+
+    Ok(())
+}
 
 #[command]
 pub async fn niveis(ctx: &Context, msg: &Message, mut _args: Args) -> CommandResult {
