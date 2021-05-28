@@ -26,7 +26,7 @@ pub async fn niveis(ctx: &Context, msg: &Message, mut _args: Args) -> CommandRes
     let rank_commands = get_command_phrases();
     let rank_commands = &rank_commands[..&rank_commands.len() - 1];
     let msg_content = rank_commands.iter().fold("".to_owned(), |acc, command| {
-        if acc.len() == 0 {
+        if acc.is_empty() {
             command.to_owned()
         } else {
             format!("{}\n{}", acc, command)
@@ -51,7 +51,7 @@ pub async fn niveis(ctx: &Context, msg: &Message, mut _args: Args) -> CommandRes
 #[command]
 pub async fn tabela(ctx: &Context, msg: &Message, mut _args: Args) -> CommandResult {
     let rank_roles = &RANK_ROLES[1..];
-    let rank_roles_set: HashSet<u64> = rank_roles.iter().map(|&u| u).collect();
+    let rank_roles_set: HashSet<u64> = rank_roles.iter().copied().collect();
     let mut role_count = vec![0u16; rank_roles.len()];
 
     if let Some(guild) = msg.guild(&ctx.cache).await {
@@ -81,7 +81,7 @@ pub async fn tabela(ctx: &Context, msg: &Message, mut _args: Args) -> CommandRes
                     .enumerate()
                     .fold("".to_owned(), |acc, (i, next_count)| {
                         let count_str = format!("{}: {}", &RANK_NAMES[i], next_count);
-                        if acc.len() == 0 {
+                        if acc.is_empty() {
                             count_str
                         } else {
                             format!("{}\n{}", &acc, &count_str)

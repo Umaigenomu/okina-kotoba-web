@@ -66,7 +66,7 @@ pub fn get_rank_quizzes() -> HashMap<String, QuizSettings> {
     QUIZ_IDS
         .iter()
         .zip(QUIZ_SETTINGS.iter())
-        .map(|(&id, settings)| (id.to_owned(), settings.clone()))
+        .map(|(&id, settings)| (id.to_owned(), *settings))
         .collect()
 }
 // Function used by the app; no modifications necessary
@@ -79,5 +79,5 @@ pub fn get_rank_commands() -> HashMap<u64, String> {
 }
 
 // CONSTANTS NOT DEFINED BY SERVER
-pub const KOTOBA_API_URL: &'static str = "https://kotobaweb.com/api/game_reports/";
+pub const KOTOBA_API_URL: &str = "https://kotobaweb.com/api/game_reports/";
 pub const KOTOBA_BOT_ID: u64 = 251239170058616833;

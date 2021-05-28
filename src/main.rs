@@ -176,7 +176,7 @@ async fn my_help(
                     false,
                 );
                 e.field(
-                    "　​",
+                    "\u{200B}",
                     "[repo](https://gitlab.com/uemi/okina-kotoba/-/tree/development)",
                     false,
                 );

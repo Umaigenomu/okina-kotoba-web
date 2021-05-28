@@ -1,6 +1,12 @@
 use std::{collections::HashMap, sync::Arc};
 
-use crate::{RankCommands, RankQuizzes, commands::env_variables::{ANNOUNCEMENT_CHANNEL_ID, KOTOBA_API_URL, KOTOBA_BOT_ID, QUIZ_IDS, RANK_NAMES, RANK_ROLES, SERVER_ID}};
+use crate::{
+    commands::env_variables::{
+        ANNOUNCEMENT_CHANNEL_ID, KOTOBA_API_URL, KOTOBA_BOT_ID, QUIZ_IDS, RANK_NAMES, RANK_ROLES,
+        SERVER_ID,
+    },
+    RankCommands, RankQuizzes,
+};
 
 use regex::Regex;
 use serde_json::Value;
@@ -31,14 +37,12 @@ fn get_current_next_rank(role_ids: &[u64]) -> (u64, u64) {
 
 fn get_next_command(current_rank: &u64, rank_commands: &Arc<HashMap<u64, String>>) -> String {
     let text = rank_commands
-                .get(&current_rank)
-                .expect("failed to retrieve command for rank");
+        .get(&current_rank)
+        .expect("failed to retrieve command for rank");
     let command_regex = Regex::new(r"`(.*)`").unwrap();
     let capture = command_regex.captures(text);
     if let Some(cap) = capture {
-        cap.get(1)
-            .map_or("", |m| m.as_str())
-            .to_owned()
+        cap.get(1).map_or("", |m| m.as_str()).to_owned()
     } else {
         text.to_owned()
     }
@@ -131,7 +135,7 @@ fn get_quiz_predicates(
         font_setting,
         _next_rankrole_id,
         allowed_failed_question_count,
-    ) = settings.clone();
+    ) = *settings;
 
     // Predicates
     let invalid_settings = start_index != 0 || end_index != 0 || is_mc || !is_shuffle || is_loaded;
@@ -184,10 +188,7 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
     for &field in useful_embed_fields.iter() {
         let quiz_id = game_report_regex
             .captures(&field.value)
-            .expect(&format!(
-                "Report id not found for field value {}",
-                &field.value
-            ))
+            .unwrap_or_else(|| panic!("Report id not found for field value {}", &field.value))
             .get(1)
             .expect("Regex didn't capture anything")
             .as_str();
@@ -197,7 +198,7 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
 
         let kotoba_report = reqwest::get(&api_url)
             .await
-            .expect(&format!("Request to url: {} has failed.", &api_url))
+            .unwrap_or_else(|_| panic!("Request to url: {} has failed.", &api_url))
             .json::<Value>()
             .await
             .unwrap();
@@ -209,7 +210,7 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
             .iter()
             .map(|deck| deck["uniqueId"].as_str().unwrap())
             .fold("".to_owned(), |acc, next_deck| {
-                if acc.len() > 0 {
+                if acc.is_empty() {
                     format!("{}+{}", &acc, next_deck)
                 } else {
                     next_deck.to_owned()
@@ -268,11 +269,7 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
                 .member(&ctx.http, participant_id)
                 .await
                 .unwrap();
-            let role_ids: Vec<u64> = member
-                .roles
-                .iter()
-                .map(|roleid| roleid.0)
-                .collect();
+            let role_ids: Vec<u64> = member.roles.iter().map(|roleid| roleid.0).collect();
             let (current_rank, next_rank) = get_current_next_rank(&role_ids);
 
             if next_rank == next_calculated_rank && current_rank != next_rank {
@@ -282,7 +279,7 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
                     .iter()
                     .map(|deck| deck["name"].as_str().unwrap())
                     .fold("".to_owned(), |acc, next_deck| {
-                        if acc.len() > 0 {
+                        if acc.is_empty() {
                             format!("{}, {}", &acc, next_deck)
                         } else {
                             next_deck.to_owned()
@@ -291,7 +288,7 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
 
                 let _ = member.remove_role(&ctx.http, current_rank).await;
                 let adr = member.add_role(&ctx.http, next_rank).await;
-                if let Err(_) = adr {
+                if adr.is_err() {
                     let _ = msg.channel_id.say(
                         &ctx.http,
                          "Não possuo permissão para te dar o cargo do próximo nível. Entre em contato com um moderador."
@@ -306,14 +303,16 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
                         participant_id, &quiz_name
                     )).await;
                 } else {
-                    let next_rank_name = RANK_NAMES[RANK_ROLES[1..].iter().position(|&x| x == next_rank).unwrap()];
+                    let next_rank_name = RANK_NAMES[RANK_ROLES[1..]
+                        .iter()
+                        .position(|&x| x == next_rank)
+                        .unwrap()];
 
                     let _ = ann_channel.say(&ctx.http, format!(
                         "<@!{}> passou no(s) quiz(es): {}, e agora é um(a) {}! Parabéns!\nO próximo nível pode ser verificado através do comando `%levelup`.", 
                         participant_id, &quiz_name, next_rank_name
                     )).await;
                 }
-
             }
         }
     }
