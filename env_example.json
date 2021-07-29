@@ -1,0 +1,81 @@
+{
+    "DISCORD_TOKEN": "yourdiscordtoken",
+    "SERVER_ID": 676162532397940737,
+    "ANNOUNCEMENT_CHANNEL_ID": 676222437158813708,
+    "RANK_ROLE_IDS": [
+        847610868232618015,
+        847612424356888586,
+        847612685990494230,
+        847613067344085062,
+        847613259821482034,
+        847613653027913749
+    ],
+    "RANK_NAMES": [
+        "新米少佐",
+        "少佐",
+        "中佐",
+        "大佐",
+        "大将",
+        "元帥"
+    ],
+    "QUIZ_COMMANDS": [
+        "k!quiz n5 nd atl=16 12 size=60 mmq=1",
+        "k!quiz n4 nd atl=12 15 size=60 mmq=1",
+        "k!quiz n3 nd atl=12 18 size=60 mmq=1",
+        "k!quiz n2+gn2 nd atl=24 22 font=10 size=40 mmq=2",
+        "k!quiz n1+gn1 nd atl=24 26 font=10 size=40 mmq=1",
+        "k!quiz 2k+new_con_book(2000-3300)+ln1 nd atl=25 30 font=10 size=40 mmq=1"
+    ],
+    "QUIZ_SETTINGS": [
+        {
+            "num_questions": 12,
+            "time_limit_ms": 16001,
+            "size": 60,
+            "font": "any",
+            "misses": 0
+        },
+        {
+            "num_questions": 15,
+            "time_limit_ms": 12001,
+            "size": 60,
+            "font": "any",
+            "misses": 0
+        },
+        {
+            "num_questions": 18,
+            "time_limit_ms": 12001,
+            "size": 60,
+            "font": "any",
+            "misses": 0
+        },
+        {
+            "num_questions": 22,
+            "time_limit_ms": 24001,
+            "size": 40,
+            "font": "AC Gyousho",
+            "misses": 1
+        },
+        {
+            "num_questions": 26,
+            "time_limit_ms": 24001,
+            "size": 40,
+            "font": "AC Gyousho",
+            "misses": 0
+        },
+        {
+            "num_questions": 30,
+            "time_limit_ms": 25001,
+            "size": 40,
+            "font": "AC Gyousho",
+            "misses": 0
+        }
+    ],
+    "QUIZ_IDS": [
+        "JLPT N5",
+        "JLPT N4",
+        "JLPT N3",
+        "JLPT N2+gn2.json",
+        "JLPT N1+gn1.json",
+        "kanken_2k+0e50357b-59a5-44c9-9de3-02120f5bcbf3(2000-3300)+ln1"
+    ]
+}

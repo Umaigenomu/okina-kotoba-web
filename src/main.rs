@@ -1,13 +1,16 @@
-extern crate dotenv;
-mod commands;
+use okina_bot_kotoba_web::{
+    RankCommands, RankQuizzes,
+    commands::{
+        levelup::*,
+        metadata::*,
+        env_variables::{
+            get_rank_commands,
+            get_rank_quizzes,
+            ENV_VARS,
+        }
+    }
+};
 
-// use okina_bot_kotoba_web::utils::Pipe;
-use commands::levelup::*;
-use commands::metadata::*;
-
-use commands::env_variables::{get_rank_commands, get_rank_quizzes, QuizSettings};
-
-use dotenv::dotenv;
 use serenity::client::bridge::gateway::GatewayIntents;
 use serenity::utils::Colour;
 use serenity::{
@@ -29,20 +32,9 @@ use serenity::{
     prelude::*,
 };
 use std::{
-    collections::{HashMap, HashSet},
-    env,
+    collections::HashSet,
     sync::Arc,
 };
-
-struct RankCommands;
-impl TypeMapKey for RankCommands {
-    type Value = Arc<HashMap<u64, String>>;
-}
-
-struct RankQuizzes;
-impl TypeMapKey for RankQuizzes {
-    type Value = Arc<HashMap<String, QuizSettings>>;
-}
 
 #[group]
 #[commands(levelup, nivel, niveis, tabela)]
@@ -74,9 +66,7 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
-    dotenv().expect("Failed to load .env file");
-
-    let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
+    let token = ENV_VARS["DISCORD_TOKEN"].as_str().expect("A valid 'DISCORD_TOKEN' value was not found in env.json.");
 
     let http = Http::new_with_token(&token);
     // Fetch bot's owner and id

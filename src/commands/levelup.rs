@@ -58,7 +58,7 @@ pub async fn levelup(ctx: &Context, msg: &Message, mut _args: Args) -> CommandRe
     //     .iter().map(|role| role.id.0).collect();     : Vec<u64>
 
     // This is equivalent to the above ^
-    if let Ok(guild) = Guild::get(&ctx.http, SERVER_ID).await {
+    if let Ok(guild) = Guild::get(&ctx.http, *SERVER_ID).await {
         if let Ok(user) = guild.member(&ctx.http, msg.author.id).await {
             let role_ids: Vec<u64> = user.roles.iter().map(|roleid| roleid.0).collect();
 
@@ -158,6 +158,29 @@ fn get_quiz_predicates(
     )
 }
 
+pub fn get_quiz_key(decks: &Value) -> String {
+    decks
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|deck| {
+            let deck_id = deck["uniqueId"].as_str().unwrap().to_owned();
+            if let Some(start) = deck["startIndex"].as_u64() {
+                if let Some(end) = deck["endIndex"].as_u64() {
+                    return format!("{}({}-{})", &deck_id, start, end);
+                }
+            } 
+            deck_id
+        })
+        .fold("".to_owned(), |acc, next_deck| {
+            if acc.is_empty() {
+                next_deck
+            } else {
+                format!("{}+{}", &acc, &next_deck)
+            }
+        })
+}
+
 pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
     let (ctx, msg) = args;
     if msg.author.id.0 != KOTOBA_BOT_ID {
@@ -204,18 +227,7 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
             .unwrap();
 
         // Get quiz settings from RankQuizzes (global data) and then predicates
-        let quiz_key: String = kotoba_report["decks"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|deck| deck["uniqueId"].as_str().unwrap())
-            .fold("".to_owned(), |acc, next_deck| {
-                if acc.is_empty() {
-                    next_deck.to_owned()
-                } else {
-                    format!("{}+{}", &acc, next_deck)
-                }
-            });
+        let quiz_key: String = get_quiz_key(&kotoba_report["decks"]);
 
         let settings = {
             let client_read_lock = ctx.data.read().await;
@@ -263,7 +275,7 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
                 .unwrap()
                 .parse::<u64>()
                 .unwrap();
-            let mut member = Guild::get(&ctx.http, SERVER_ID)
+            let mut member = Guild::get(&ctx.http, *SERVER_ID)
                 .await
                 .unwrap()
                 .member(&ctx.http, participant_id)
@@ -295,7 +307,7 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
                     ).await;
                 }
 
-                let ann_channel = ChannelId(ANNOUNCEMENT_CHANNEL_ID);
+                let ann_channel = ChannelId(*ANNOUNCEMENT_CHANNEL_ID);
 
                 if next_rank == *RANK_ROLES.last().unwrap() {
                     let _ = ann_channel.say(&ctx.http, format!(

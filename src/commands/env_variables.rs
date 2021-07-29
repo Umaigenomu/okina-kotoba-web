@@ -1,59 +1,83 @@
-use std::collections::HashMap;
+use lazy_static::lazy_static;
+use serde_json as json;
+use serde_json::Value;
+use std::{collections::HashMap, env, fs};
 
-// THE FOLLOWING VARIABLES MUST BE SET BY THE SERVER'S MODERATOR
-pub const SERVER_ID: u64 = 676162532397940737;
+fn load_env() -> Value {
+    let mut env_dir = env::current_exe().expect("Can't find path to executable");
+    env_dir.pop();
+    env_dir.push("env.json");
+    let env_data = fs::read_to_string(env_dir).expect("Failed to read env.json");
+    json::from_str(&env_data).expect("Unable to parse ")
+}
 
-pub const ANNOUNCEMENT_CHANNEL_ID: u64 = 676162532397940743;
+pub fn load_rank_names(env_vars: &'static Value) -> Vec<&'static str> {
+    let rank_names =
+        env_vars["RANK_NAMES"].as_array().expect("Failed to read rank_names from env.json");
+    rank_names.iter().map(|name| name.as_str().expect("Rank names must all be strings.")).collect()
+}
 
-pub const RANK_NAMES: [&str; 6] = ["新米少佐", "少佐", "中佐", "大佐", "大将", "元帥"];
-pub const RANK_ROLES: [u64; 7] = [
-    0,                  // No role; necessary
-    847610868232618015, // 新米少佐
-    847612424356888586, // 少佐
-    847612685990494230, // 中佐
-    847613067344085062, // 大佐
-    847613259821482034, // 大将
-    847613653027913749, // 元帥
-];
+pub fn load_rank_roles(env_vars: &'static Value) -> Vec<u64> {
+    let roles = env_vars["RANK_ROLE_IDS"].as_array().expect("Failed to read rank_role_ids from env.json");
+    let role_ids: Vec<u64> = roles.iter().map(|id| id.as_u64().expect("Rank role ids must all be unsigned ints.")).collect();
+    // First elem is 0 => no role
+    [&[0], &role_ids[..]].concat()
+}
 
-// VALUES STORED ARE:
+pub fn load_quiz_settings(env_vars: &'static Value, rank_roles: &[u64]) -> Vec<QuizSettings> {
+    let quiz_settings = env_vars["QUIZ_SETTINGS"].as_array().expect("Failed to read quiz_settings from env.json");
+    quiz_settings
+        .iter()
+        .zip(&rank_roles[1..])
+        .map(|(setting, role)| (
+            setting["num_questions"].as_u64().unwrap() as u32, 
+            setting["time_limit_ms"].as_u64().unwrap() as u32,
+            setting["size"].as_u64().unwrap() as u32,
+            setting["font"].as_str().unwrap(),
+            *role,
+            setting["misses"].as_u64().unwrap() as u8
+        ))
+        .collect()
+}
+
+pub fn load_quiz_commands(env_vars: &'static Value) -> Vec<&'static str> {
+    let commands = env_vars["QUIZ_COMMANDS"].as_array().expect("Failed to read quiz_commands from env.json");
+    commands.iter().map(|cmd| cmd.as_str().expect("Quiz commands must be strings")).collect()
+}
+
+pub fn load_quiz_ids(env_vars: &'static Value) -> Vec<&'static str> {
+    let ids = env_vars["QUIZ_IDS"].as_array().expect("Failed to read quiz_ids from env.json");
+    ids.iter().map(|id| id.as_str().expect("Quiz ids must be strings")).collect()
+}
+
+lazy_static! {
+    pub static ref ENV_VARS: Value = load_env();
+    pub static ref SERVER_ID: u64 = {
+        ENV_VARS["SERVER_ID"].as_u64().expect("Failed to read server_id from env.json")
+    };
+    pub static ref ANNOUNCEMENT_CHANNEL_ID: u64 = {
+        ENV_VARS["ANNOUNCEMENT_CHANNEL_ID"].as_u64()
+        .expect("Failed to read announcement_channel_id from env.json")
+    };
+    pub static ref RANK_NAMES: Vec<&'static str> = load_rank_names(&ENV_VARS);
+    pub static ref RANK_ROLES: Vec<u64> = load_rank_roles(&ENV_VARS);
+    pub static ref QUIZ_SETTINGS: Vec<QuizSettings> = load_quiz_settings(&ENV_VARS, &RANK_ROLES);
+    // Kotoba-web quiz commands built upon the settings above^
+    pub static ref QUIZ_COMMANDS: Vec<&'static str> = load_quiz_commands(&ENV_VARS);
+    // By accessing kotoba-web's api, you are able to see each of the decks' unique ids for a quiz report
+    // for multiple deck quizzes, the unique ids were merged with '+'
+    pub static ref QUIZ_IDS: Vec<&'static str> = load_quiz_ids(&ENV_VARS);
+}
+
 // score_limit, answer_time_limit_in_ms, fontsize, font, rankrole_obtained, allowed_failed_question_count
 pub type QuizSettings = (u32, u32, u32, &'static str, u64, u8);
-pub const QUIZ_SETTINGS: [QuizSettings; 6] = [
-    (12, 16001, 60, "any", RANK_ROLES[1], 0),
-    (15, 12001, 60, "any", RANK_ROLES[2], 0),
-    (18, 12001, 60, "any", RANK_ROLES[3], 0),
-    (22, 24001, 40, "AC Gyousho", RANK_ROLES[4], 1),
-    (26, 18001, 40, "AC Gyousho", RANK_ROLES[5], 0),
-    (30, 12001, 40, "AC Gyousho", RANK_ROLES[6], 0),
-];
-// Kotoba-web quiz commands built upon the settings above^
-pub const QUIZ_COMMANDS: [&str; 6] = [
-    "k!quiz n5 nd atl=16 12 size=60 mmq=1",
-    "k!quiz n4 nd atl=12 15 size=60 mmq=1",
-    "k!quiz n3 nd atl=12 18 size=60 mmq=1",
-    "k!quiz n2+gn2 nd atl=24 22 font=10 size=40 mmq=2",
-    "k!quiz n1+gn1 nd atl=18 26 font=10 size=40 mmq=1",
-    "k!quiz 2k+j1k+cope nd atl=12 30 font=10 size=40 mmq=1",
-];
 
-// By accessing kotoba-web's api, you are able to see each of the decks' unique ids for a quiz report
-// for multiple deck quizzes, the unique ids were merged with '+'
-pub const QUIZ_IDS: [&str; 6] = [
-    "JLPT N5",
-    "JLPT N4",
-    "JLPT N3",
-    "JLPT N2+gn2.json",
-    "JLPT N1+gn1.json",
-    "kanken_2k+kanken_j1k+57cbb7f8-72b0-4361-a0a8-9020441e1d0c",
-];
-
-// Command messages for each level are defined here; LINE 61 AND 63 ARE ALSO DEFINED BY USER
+// Command messages for each level are defined here; LINE 77 AND 79 ARE DEFINED BY USER
 pub fn get_command_phrases() -> Vec<String> {
     let mut phrases: Vec<String> = RANK_NAMES
         .iter()
         .enumerate()
-        .zip(&QUIZ_COMMANDS)
+        .zip(QUIZ_COMMANDS.iter())
         .map(|((i, &name), &command)| format!("Nível {} ({}):\n`{}`", i + 1, name, command))
         .collect();
     phrases.push("Você já está no nível mais alto. (Parabéns)".to_owned());
@@ -61,7 +85,7 @@ pub fn get_command_phrases() -> Vec<String> {
 }
 // ========================================================================================================
 
-// Function used by the app; no modifications necessary
+// Function used by the app;
 pub fn get_rank_quizzes() -> HashMap<String, QuizSettings> {
     QUIZ_IDS
         .iter()
@@ -69,7 +93,7 @@ pub fn get_rank_quizzes() -> HashMap<String, QuizSettings> {
         .map(|(&id, settings)| (id.to_owned(), *settings))
         .collect()
 }
-// Function used by the app; no modifications necessary
+// Function used by the app;
 pub fn get_rank_commands() -> HashMap<u64, String> {
     get_command_phrases()
         .iter()
