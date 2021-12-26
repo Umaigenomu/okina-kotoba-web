@@ -116,15 +116,6 @@ fn get_quiz_predicates(
     let font = kotoba_report["settings"]["font"].as_str().unwrap();
     let is_shuffle = kotoba_report["settings"]["shuffle"].as_bool().unwrap();
     let is_loaded = kotoba_report["isLoaded"].as_bool().unwrap();
-
-    let mut start_index = 0;
-    let mut end_index = 0;
-    if let Some(ind) = kotoba_report["decks"][0].get("startIndex") {
-        start_index = ind.as_u64().unwrap();
-    }
-    if let Some(ind) = kotoba_report["decks"][0].get("endIndex") {
-        end_index = ind.as_u64().unwrap();
-    }
     let is_mc = kotoba_report["decks"][0]["mc"].as_bool().unwrap();
 
     // Requirements according to RankQuizzes
@@ -138,7 +129,7 @@ fn get_quiz_predicates(
     ) = *settings;
 
     // Predicates
-    let invalid_settings = start_index != 0 || end_index != 0 || is_mc || !is_shuffle || is_loaded;
+    let invalid_settings = is_mc || !is_shuffle || is_loaded;
     let score_doesnt_match =
         main_partic_score != score_limit || score_limit < score_limit_setting as u64;
     let more_than_one_user = participant_count > 1;
@@ -169,7 +160,7 @@ pub fn get_quiz_key(decks: &Value) -> String {
                 if let Some(end) = deck["endIndex"].as_u64() {
                     return format!("{}({}-{})", &deck_id, start, end);
                 }
-            } 
+            }
             deck_id
         })
         .fold("".to_owned(), |acc, next_deck| {
@@ -264,6 +255,28 @@ pub async fn on_kotoba_msg(args: (Context, Message)) -> (Context, Message) {
         {
             if &quiz_key == QUIZ_IDS.last().unwrap() {
                 let _ = msg.channel_id.say(&ctx.http, "馬鹿だねぇ。断言しよう！　今のお前が私に勝つことは不可能だ。\nお前の背中に四季の扉がある限り、勝負など茶番でしか無い。").await;
+            }
+            if !score_doesnt_match {
+                let _ = msg
+                    .channel_id
+                    .say(
+                        &ctx.http,
+                        &format!(
+                            "Negative predicates that failed/didn't fail:\n\
+                    Invalid quiz settings: {},\n\
+                    More than one user participated: {},\n\
+                    Time limit is too low: {},\n\
+                    Wrong font settings: {},\n\
+                    Failed too many questions: {}
+                    ",
+                            invalid_settings,
+                            more_than_one_user,
+                            time_limit_too_low,
+                            wrong_font_settings,
+                            failed_too_many
+                        ),
+                    )
+                    .await;
             }
             continue;
         } else {
