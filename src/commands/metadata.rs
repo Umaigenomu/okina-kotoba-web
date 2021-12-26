@@ -1,20 +1,27 @@
 use std::collections::HashSet;
 
-use crate::commands::env_variables::{RANK_NAMES, RANK_ROLES, QUIZ_COMMANDS};
+use crate::commands::env_variables::{QUIZ_COMMANDS, RANK_NAMES, RANK_ROLES};
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::*;
-use serenity::{prelude::*};
+use serenity::prelude::*;
 
 use super::env_variables::get_command_phrases;
 
 #[command]
 pub async fn nivel(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    let parse_level = args.rest().trim().parse::<u16>();
+    let parse_level = args.rest().trim().parse::<usize>();
     if let Ok(level) = parse_level {
-        if level > 0 && level < 7 {
-            let _ = msg.reply(&ctx, &format!("`{}`", QUIZ_COMMANDS[(level - 1) as usize])).await;
+        if level > 0 && level <= QUIZ_COMMANDS.len() {
+            let _ = msg
+                .reply(&ctx, &format!("`{}`", QUIZ_COMMANDS[(level - 1) as usize]))
+                .await;
         } else {
-            let _ = msg.reply(&ctx, "Os níveis são de 1 a 6.").await;
+            let _ = msg
+                .reply(
+                    &ctx,
+                    &format!("Os níveis são de 1 a {}.", QUIZ_COMMANDS.len()),
+                )
+                .await;
         }
     }
 
@@ -57,14 +64,16 @@ pub async fn tabela(ctx: &Context, msg: &Message, mut _args: Args) -> CommandRes
     if let Some(guild) = msg.guild(&ctx.cache).await {
         let mem_count = guild.member_count as f64;
         let chunks = std::cmp::max((mem_count / 1000f64).ceil() as i64 - 1, 0);
-        
+
         if let Ok(mut members) = guild.members(&ctx.http, Some(1000), None).await {
             for _ in 0..chunks {
-                if let Ok(mut members_nested) = guild.members(&ctx.http, Some(1000), members.last().unwrap().user.id).await {
+                if let Ok(mut members_nested) = guild
+                    .members(&ctx.http, Some(1000), members.last().unwrap().user.id)
+                    .await
+                {
                     members.append(&mut members_nested);
                 }
             }
-
 
             for member in members.iter() {
                 member.roles.iter().for_each(|roleid| {

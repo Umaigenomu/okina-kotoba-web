@@ -12,42 +12,67 @@ fn load_env() -> Value {
 }
 
 pub fn load_rank_names(env_vars: &'static Value) -> Vec<&'static str> {
-    let rank_names =
-        env_vars["RANK_NAMES"].as_array().expect("Failed to read rank_names from env.json");
-    rank_names.iter().map(|name| name.as_str().expect("Rank names must all be strings.")).collect()
+    let rank_names = env_vars["RANK_NAMES"]
+        .as_array()
+        .expect("Failed to read rank_names from env.json");
+    rank_names
+        .iter()
+        .map(|name| name.as_str().expect("Rank names must all be strings."))
+        .collect()
 }
 
 pub fn load_rank_roles(env_vars: &'static Value) -> Vec<u64> {
-    let roles = env_vars["RANK_ROLE_IDS"].as_array().expect("Failed to read rank_role_ids from env.json");
-    let role_ids: Vec<u64> = roles.iter().map(|id| id.as_u64().expect("Rank role ids must all be unsigned ints.")).collect();
+    let roles = env_vars["RANK_ROLE_IDS"]
+        .as_array()
+        .expect("Failed to read rank_role_ids from env.json");
+    let role_ids: Vec<u64> = roles
+        .iter()
+        .map(|id| {
+            id.as_u64()
+                .expect("Rank role ids must all be unsigned ints.")
+        })
+        .collect();
     // First elem is 0 => no role
     [&[0], &role_ids[..]].concat()
 }
 
 pub fn load_quiz_settings(env_vars: &'static Value, rank_roles: &[u64]) -> Vec<QuizSettings> {
-    let quiz_settings = env_vars["QUIZ_SETTINGS"].as_array().expect("Failed to read quiz_settings from env.json");
+    let quiz_settings = env_vars["QUIZ_SETTINGS"]
+        .as_array()
+        .expect("Failed to read quiz_settings from env.json");
     quiz_settings
         .iter()
         .zip(&rank_roles[1..])
-        .map(|(setting, role)| (
-            setting["num_questions"].as_u64().unwrap() as u32, 
-            setting["time_limit_ms"].as_u64().unwrap() as u32,
-            setting["size"].as_u64().unwrap() as u32,
-            setting["font"].as_str().unwrap(),
-            *role,
-            setting["misses"].as_u64().unwrap() as u8
-        ))
+        .map(|(setting, role)| {
+            (
+                setting["num_questions"].as_u64().unwrap() as u32,
+                setting["time_limit_ms"].as_u64().unwrap() as u32,
+                setting["size"].as_u64().unwrap() as u32,
+                setting["font"].as_str().unwrap(),
+                *role,
+                setting["misses"].as_u64().unwrap() as u8,
+            )
+        })
         .collect()
 }
 
 pub fn load_quiz_commands(env_vars: &'static Value) -> Vec<&'static str> {
-    let commands = env_vars["QUIZ_COMMANDS"].as_array().expect("Failed to read quiz_commands from env.json");
-    commands.iter().map(|cmd| cmd.as_str().expect("Quiz commands must be strings")).collect()
+    let commands = env_vars["QUIZ_COMMANDS"]
+        .as_array()
+        .expect("Failed to read quiz_commands from env.json");
+    commands
+        .iter()
+        .map(|cmd| cmd.as_str().expect("Quiz commands must be strings"))
+        .collect()
 }
 
 pub fn load_quiz_ids(env_vars: &'static Value) -> Vec<&'static str> {
-    let ids = env_vars["QUIZ_IDS"].as_array().expect("Failed to read quiz_ids from env.json");
-    ids.iter().map(|id| id.as_str().expect("Quiz ids must be strings")).collect()
+    let ids = env_vars["QUIZ_IDS"]
+        .as_array()
+        .expect("Failed to read quiz_ids from env.json");
+    ids.iter()
+        .map(|id| id.as_str().expect("Quiz ids must be strings"))
+        .collect()
 }
 
 lazy_static! {

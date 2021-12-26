@@ -7,6 +7,7 @@ use okina_bot_kotoba_web::{
             get_rank_commands,
             get_rank_quizzes,
             ENV_VARS,
+            QUIZ_COMMANDS
         }
     }
 };
@@ -151,7 +152,7 @@ async fn my_help(
                 );
                 e.field(
                     "`%nivel [numero]`",
-                    "Envia o quiz cujo nível é igual a [numero] (1 a 6)",
+                    &format!("Envia o quiz cujo nível é igual a [numero] (1 a {})", QUIZ_COMMANDS.len()),
                     false,
                 );
                 e.field(
