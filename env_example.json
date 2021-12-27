@@ -26,7 +26,7 @@
         "k!quiz n3 nd atl=12 18 size=60 mmq=1",
         "k!quiz n2+gn2 nd atl=24 22 font=10 size=40 mmq=2",
         "k!quiz n1+gn1 nd atl=24 26 font=10 size=40 mmq=1",
-        "k!quiz 2k+new_con_book(2000-3300)+ln1 nd atl=25 30 font=10 size=40 mmq=1",
+        "k!quiz 2k+new_con_book(2000-3300)+ln1+insane nd atl=25 30 font=10 size=40 mmq=1",
         "k!quiz new_con_book(3500-6500)+j1k+jpdefs nd atl=18 35 font=10 size=40 mmq=1"
     ],
     "QUIZ_SETTINGS": [
@@ -86,7 +86,7 @@
         "JLPT N3",
         "JLPT N2+gn2.json",
         "JLPT N1+gn1.json",
-        "kanken_2k+0e50357b-59a5-44c9-9de3-02120f5bcbf3(2000-3300)+ln1",
+        "kanken_2k+0e50357b-59a5-44c9-9de3-02120f5bcbf3(2000-3300)+ln1+insane",
         "0e50357b-59a5-44c9-9de3-02120f5bcbf3(3500-6500)+kanken_j1k+jpdefs"
     ]
 }
