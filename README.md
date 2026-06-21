@@ -1,4 +1,4 @@
-# Discord quiz assessment bot for [Japonês Brasil](https://disboard.org/server/676162532397940737)
+# Discord quiz assessment bot for Japanese assessment
 
 
 Based on the [DJT Chat discord server bot](https://github.com/friedrich-de/djt-bot).
